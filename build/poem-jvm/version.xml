@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<info>
+<entry
+   kind="dir"
+   path="."
+   revision="3957">
+<url>http://oryx-editor.googlecode.com/svn/trunk/poem-jvm</url>
+<repository>
+<root>http://oryx-editor.googlecode.com/svn</root>
+<uuid>d672c736-503d-0410-a38a-9366997c882b</uuid>
+</repository>
+<wc-info>
+<wcroot-abspath>/home/sandile/Repos/oryx-editor-read-only</wcroot-abspath>
+<schedule>normal</schedule>
+<depth>infinity</depth>
+</wc-info>
+<commit
+   revision="3938">
+<author>christian.wiggert</author>
+<date>2011-06-15T15:17:26.205645Z</date>
+</commit>
+</entry>
+</info>

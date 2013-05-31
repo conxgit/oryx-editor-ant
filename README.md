@@ -1,4 +1,4 @@
 oryx-editor-ant
 ===============
 
-Ant-based Oryx Editor
+Ant based oryx project
