@@ -40,6 +40,9 @@ public class NewModelHandler extends HandlerBase {
 	Properties props=null;
 	final static String configPreFix="profile.stencilset.mapping.";
 	final static String defaultSS= "/stencilsets/bpmn/bpmn.json";
+	
+//	private IReportingDAOServicePortType reportingDAOService;
+	
 	@Override
 	public void init() {
 		//Load properties
@@ -47,6 +50,12 @@ public class NewModelHandler extends HandlerBase {
 		
 		//initialize properties from backend.properties
 		try {
+//			JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
+//			factory.getInInterceptors().add(new LoggingInInterceptor());
+//			factory.getOutInterceptors().add(new LoggingOutInterceptor());
+//			factory.setServiceClass(IReportingDAOService.class);
+//			factory.setAddress("http://71.162.140.200:8181/cxf/com/conx/bi/app/reporting/dao/services/IReportingDAOService");
+//			this.reportingDAOService = ((IReportingDAOService) factory.create()).getIReportingDAOServicePort();
 			
 			in = new FileInputStream(this.getBackendRootDirectory() + "/WEB-INF/backend.properties");
 			props = new Properties();
@@ -129,6 +138,8 @@ public class NewModelHandler extends HandlerBase {
 			Identity identity = Identity.newModel(subject, title, type, summary, 
 					request.getParameter("svg"), request.getParameter("data"));
 			response.setHeader("location", this.getServerPath(request) + identity.getUri() + "/self");
+			// ConX BI Call
+//			this.reportingDAOService.getJobDefinition(identity.getId());
 		}
 		else {
 			response.setStatus(400);
