@@ -83,6 +83,7 @@ public class EditorHandler extends HttpServlet {
 		sset=conf.optString("stencilset");
 		if(sset==null || "".equals(sset))
 			sset=defaultSS;
+		boolean isTemplate = "true".equals(request.getParameter("template"));
 		String extString="";
 		JSONArray exts= conf.optJSONArray("stencilsetextension");
 		if(exts==null)
@@ -95,7 +96,7 @@ public class EditorHandler extends HttpServlet {
 	        "ORYX.CONFIG.PLUGINS_CONFIG  =			ORYX.CONFIG.PROFILE_PATH + '"+profiles.get(0)+".xml';" +
 	        "ORYX.CONFIG.SSET='" + sset +"';" +
 	        "ORYX.CONFIG.SSEXTS=" + extString + ";"+
-
+	        ((isTemplate) ? "ORYX.CONFIG[\"IS_TEMPLATE\"] = true;" : "ORYX.CONFIG[\"IS_TEMPLATE\"] = false;") +
 	        "if ('undefined' == typeof(window.onOryxResourcesLoaded)) { " +
 	        	"ORYX.Log.warn('No adapter to repository specified, default used. You need a function window.onOryxResourcesLoaded that obtains model-JSON from your repository');" +
 	        	"window.onOryxResourcesLoaded = function() {" +

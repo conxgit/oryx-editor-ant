@@ -136,13 +136,32 @@ ORYX.Core.StencilSet.Property = Clazz.extend({
 		}
         
         if (jsonProp.type === ORYX.CONFIG.TYPE_CHOICE) {
+        	if (jsonProp.restUrl && jsonProp.restMethod && jsonProp.restParams) {
+        		var propertyRef = this;
+        		// Use REST to fetch choice items
+        		new Ajax.Request(jsonProp.restUrl, {
+        			method : jsonProp.restMethod,
+        			parameters : jsonProp.restParams,
+        			onSuccess : function(result) {
+        				var restItems = JSON.parse(result.responseText);
+        				if (restItems instanceof Array) {
+	        				for (var i = 0; i < restItems.length; i++) {
+	        					propertyRef._items[(restItems[i]).value] = new ORYX.Core.StencilSet.PropertyItem(restItems[i], namespace, propertyRef);
+	        				}
+        				}
+        			},
+        			onFailure : function() {
+        				if (console) console.log("ERR: Could not fetch Choice Items from REST")
+        			}
+        		});
+        	}
             if (jsonProp.items && jsonProp.items instanceof Array) {
                 jsonProp.items.each((function(jsonItem){
                 	// why is the item's value used as the key???
                     this._items[jsonItem.value] = new ORYX.Core.StencilSet.PropertyItem(jsonItem, namespace, this);
                 }).bind(this));
             }
-            else {
+            else if (!jsonProp.restUrl || !jsonProp.restMethod || !jsonProp.restParams) {
                 throw "ORYX.Core.StencilSet.Property(construct): No property items defined."
             }
             // extended by Kerstin (start)

@@ -577,7 +577,9 @@ ORYX.Plugins.PropertyWindow = {
 							break;
 						case ORYX.CONFIG.TYPE_CHOICE:
 							var items = pair.items();
-													
+							if (console) {
+								console.log(pair);
+							}
 							var options = [];
 							items.each(function(value) {
 								if(value.value() == attribute)

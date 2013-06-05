@@ -31,7 +31,7 @@ public class EndpointHandler extends HandlerBase {
 //			factory.setServiceClass(IReportingDAOService.class);
 //			factory.setAddress("http://71.162.140.200:8181/cxf/com/conx/bi/app/reporting/dao/services/IReportingDAOService");
 //			this.reportingDAOService = ((IReportingDAOService) factory.create()).getIReportingDAOServicePort();
-
+			
 			in = new FileInputStream(this.getBackendRootDirectory() + "/WEB-INF/backend.properties");
 			props = new Properties();
 			props.load(in);
@@ -43,25 +43,23 @@ public class EndpointHandler extends HandlerBase {
 
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response, Identity subject, Identity object) throws IOException {
-		response.setStatus(400);
-		response.getWriter().println("Get not allowed");
-	}
-
-	@Override
-	public void doPost(HttpServletRequest request, HttpServletResponse response, Identity subject, Identity object) throws IOException {
-		// Check whether the request contains at least the data and svg
-		// parameters
 		if ((request.getParameter("userId") != null) && (request.getParameter("call") != null)) {
-			response.setStatus(201);
 //			String userId = request.getParameter("userId");
 			String call = request.getParameter("call");
 			if ("getEndpointsByTenant".equals(call)) {
-				response.setContentType("application/json");
-				response.getWriter().println("[{\"value\":1,\"name\":\"MySQL\"},{\"value\":2,\"name\":\"PostgreSQL\"},{\"value\":3,\"name\":\"Oracle\"}]");
+				response.setContentType("application/xml");
+				response.getWriter().write("[{\"title\":\"MySQL*\",\"value\":1,\"id\":1},{\"title\":\"PostgreSQL*\",\"value\":2,\"id\":2},{\"title\":\"Oracle*\",\"value\":3,\"id\":3}]");
+				response.setStatus(200);
 			}
 		} else {
 			response.setStatus(400);
 			response.getWriter().println("Invalid parameters");
 		}
+	}
+
+	@Override
+	public void doPost(HttpServletRequest request, HttpServletResponse response, Identity subject, Identity object) throws IOException {
+		response.setStatus(400);
+		response.getWriter().println("Post not allowed");
 	}
 }
