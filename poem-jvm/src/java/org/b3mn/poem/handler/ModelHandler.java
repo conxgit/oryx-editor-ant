@@ -89,6 +89,7 @@ public class ModelHandler extends  HandlerBase {
 	@RestrictAccess(AccessRight.WRITE)
     public void doPost(HttpServletRequest request, HttpServletResponse response, Identity subject, Identity object) throws IOException {
 		// TODO: add some error handling
+		/***************** THIS HANDLES EDIT/MODIFY *******************/
 		Representation.update(object.getId(), null, null, request.getParameter("data"), request.getParameter("svg"));
 		response.setStatus(200);
 	}
