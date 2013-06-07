@@ -1,6 +1,7 @@
 package org.b3mn.poem.handler;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,23 +12,34 @@ import org.b3mn.poem.Identity;
 import org.b3mn.poem.util.HandlerWithoutModelContext;
 
 import com.conx.bi.app.reporting.dao.services.Endpoint;
+import com.conx.bi.app.reporting.dao.services.IReportingDAOService;
 import com.conx.bi.app.reporting.dao.services.IReportingDAOServicePortType;
 
 @HandlerWithoutModelContext(uri = "/endpoint")
 public class EndpointHandler extends HandlerBase {
-	private static final boolean isTesting = true;
+	private static final boolean isTesting = false;
 
 	private IReportingDAOServicePortType reportingDAOService;
+	
+	public EndpointHandler() {
+//		JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
+//		factory.getInInterceptors().add(new LoggingInInterceptor());
+//		factory.getOutInterceptors().add(new LoggingOutInterceptor());
+//		factory.setServiceClass(IReportingDAOService.class);
+//		factory.setAddress("http://71.162.140.197:8181/cxf/com/conx/bi/app/reporting/dao/services/IReportingDAOService?wsdl");
+		try {
+//			this.reportingDAOService = ((IReportingDAOService) factory.create()).getIReportingDAOServicePort();
+			IReportingDAOService service = new IReportingDAOService(new URL("http://71.162.140.197:8181/cxf/com/conx/bi/app/reporting/dao/services/IReportingDAOService?wsdl"));
+			this.reportingDAOService = service.getIReportingDAOServicePort();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} catch (Error e) {
+			e.printStackTrace();
+		}
+	}
 
 	@Override
 	public void init() {
-		// JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
-		// factory.getInInterceptors().add(new LoggingInInterceptor());
-		// factory.getOutInterceptors().add(new LoggingOutInterceptor());
-		// factory.setServiceClass(IReportingDAOService.class);
-		// factory.setAddress("http://71.162.140.200:8181/cxf/com/conx/bi/app/reporting/dao/services/IReportingDAOService");
-		// this.reportingDAOService = ((IReportingDAOService)
-		// factory.create()).getIReportingDAOServicePort();
 	}
 
 	private List<Endpoint> getEndpoints() {
@@ -56,56 +68,61 @@ public class EndpointHandler extends HandlerBase {
 
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response, Identity subject, Identity object) throws IOException {
-		if ((request.getParameter("userId") != null) && (request.getParameter("call") != null)) {
-			// String userId = request.getParameter("userId");
-			String call = request.getParameter("call");
-			if ("getEndpointsByTenant".equals(call)) {
-				StringBuffer buffer = new StringBuffer();
-				buffer.append('[');
-				List<Endpoint> endpoints = getEndpoints();
-				boolean isFirst = true;
-				for (Endpoint endpoint : endpoints) {
-					if (!isFirst)
-						buffer.append(',');
-					
-					buffer.append('{');
+		try {
+			if ((request.getParameter("userId") != null) && (request.getParameter("call") != null)) {
+				// String userId = request.getParameter("userId");
+				String call = request.getParameter("call");
+				if ("getEndpointsByTenant".equals(call)) {
+					StringBuffer buffer = new StringBuffer();
+					buffer.append('[');
+					List<Endpoint> endpoints = getEndpoints();
+					boolean isFirst = true;
+					for (Endpoint endpoint : endpoints) {
+						if (!isFirst)
+							buffer.append(',');
+						
+						buffer.append('{');
 
-					buffer.append("\"title\":\"");
-					if (endpoint.getName() == null) {
-						buffer.append("<undefined>");
-					} else {
-						buffer.append(endpoint.getName());
+						buffer.append("\"title\":\"");
+						if (endpoint.getName() == null) {
+							buffer.append("<undefined>");
+						} else {
+							buffer.append(endpoint.getName());
+						}
+						buffer.append("\",");
+
+						buffer.append("\"value\":\"");
+						if (endpoint.getCode() == null) {
+							buffer.append(0);
+						} else {
+							buffer.append(endpoint.getCode());
+						}
+						buffer.append("\",");
+
+						buffer.append("\"id\":");
+						if (endpoint.getId() == null) {
+							buffer.append(0);
+						} else {
+							buffer.append(endpoint.getId());
+						}
+
+						buffer.append('}');
+
+						if (isFirst)
+							isFirst = false;
 					}
-					buffer.append("\",");
-
-					buffer.append("\"value\":\"");
-					if (endpoint.getCode() == null) {
-						buffer.append(0);
-					} else {
-						buffer.append(endpoint.getCode());
-					}
-					buffer.append("\",");
-
-					buffer.append("\"id\":");
-					if (endpoint.getId() == null) {
-						buffer.append(0);
-					} else {
-						buffer.append(endpoint.getId());
-					}
-
-					buffer.append('}');
-
-					if (isFirst)
-						isFirst = false;
+					buffer.append(']');
+					response.setContentType("application/xml");
+					response.getWriter().write(buffer.toString());
+					response.setStatus(200);
 				}
-				buffer.append(']');
-				response.setContentType("application/xml");
-				response.getWriter().write(buffer.toString());
-				response.setStatus(200);
+			} else {
+				response.setStatus(400);
+				response.getWriter().println("Invalid parameters");
 			}
-		} else {
+		} catch (Exception e) {
 			response.setStatus(400);
-			response.getWriter().println("Invalid parameters");
+			response.getWriter().println(e.toString());
 		}
 	}
 

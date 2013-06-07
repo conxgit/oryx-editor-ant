@@ -52,6 +52,23 @@
 		        "view": "data.object.svg",
 		        "icon": "data.object.png",
 		        "roles": ["output"],
+				"properties": [
+					{
+						"id": "dataSource",
+						"type": "Choice",
+						"restUrl": "/backend/poem/endpoint",
+						"restMethod": "GET",
+						"restParams": {
+							"userId": "skeswa",
+							"call": "getEndpointsByTenant"
+						},
+						"title": "Data Source",
+											"description": "Configuration for this data source.",
+											"readonly":false,
+											"optional":false,
+						"items": []
+					}
+				]
 		},
 		{
 		        "type": "node",

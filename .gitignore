@@ -5,6 +5,5 @@ dist/
 war/
 
 # Package Files #
-*.jar
 *.war
 *.ear

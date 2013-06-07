@@ -1,6 +1,7 @@
 package org.b3mn.poem.handler;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,23 +11,35 @@ import javax.servlet.http.HttpServletResponse;
 import org.b3mn.poem.Identity;
 import org.b3mn.poem.util.HandlerWithoutModelContext;
 
+import com.conx.bi.app.reporting.dao.services.IReportingDAOService;
 import com.conx.bi.app.reporting.dao.services.IReportingDAOServicePortType;
 import com.conx.bi.app.reporting.dao.services.ReportTemplate;
 
 @HandlerWithoutModelContext(uri = "/reporting")
 public class ReportingHandler extends HandlerBase {
-	private static final boolean isTesting = true;
-	
-	private IReportingDAOServicePortType reportingDAOService;
+	private static final boolean isTesting = false;
 
-	@Override
-	public void init() {
+	private IReportingDAOServicePortType reportingDAOService;
+	
+	public ReportingHandler() {
 //		JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
 //		factory.getInInterceptors().add(new LoggingInInterceptor());
 //		factory.getOutInterceptors().add(new LoggingOutInterceptor());
 //		factory.setServiceClass(IReportingDAOService.class);
-//		factory.setAddress("http://71.162.140.200:8181/cxf/com/conx/bi/app/reporting/dao/services/IReportingDAOService");
-//		this.reportingDAOService = ((IReportingDAOService) factory.create()).getIReportingDAOServicePort();
+//		factory.setAddress("http://71.162.140.197:8181/cxf/com/conx/bi/app/reporting/dao/services/IReportingDAOService?wsdl");
+		try {
+//			this.reportingDAOService = ((IReportingDAOService) factory.create()).getIReportingDAOServicePort();
+			IReportingDAOService service = new IReportingDAOService(new URL("http://71.162.140.197:8181/cxf/com/conx/bi/app/reporting/dao/services/IReportingDAOService?wsdl"));
+			this.reportingDAOService = service.getIReportingDAOServicePort();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} catch (Error e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void init() {
 	}
 
 	private List<ReportTemplate> getReportingTemplates() {
@@ -52,48 +65,53 @@ public class ReportingHandler extends HandlerBase {
 
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response, Identity subject, Identity object) throws IOException {
-		if ((request.getParameter("userId") != null) && (request.getParameter("call") != null)) {
-			// String userId = request.getParameter("userId");
-			String call = request.getParameter("call");
-			if ("getReportTemplatesByTenant".equals(call)) {
-				StringBuffer buffer = new StringBuffer();
-				buffer.append('[');
-				List<ReportTemplate> templates = getReportingTemplates();
-				boolean isFirst = true;
-				for (ReportTemplate template : templates) {
-					if (!isFirst)
-						buffer.append(',');
-					
-					buffer.append('{');
+		try {
+			if ((request.getParameter("userId") != null) && (request.getParameter("call") != null)) {
+				// String userId = request.getParameter("userId");
+				String call = request.getParameter("call");
+				if ("getReportTemplatesByTenant".equals(call)) {
+					StringBuffer buffer = new StringBuffer();
+					buffer.append('[');
+					List<ReportTemplate> templates = getReportingTemplates();
+					boolean isFirst = true;
+					for (ReportTemplate template : templates) {
+						if (!isFirst)
+							buffer.append(',');
 
-					buffer.append("\"name\":\"");
-					if (template.getName() == null) {
-						buffer.append("<undefined>");
-					} else {
-						buffer.append(template.getName());
+						buffer.append('{');
+
+						buffer.append("\"name\":\"");
+						if (template.getName() == null) {
+							buffer.append("<undefined>");
+						} else {
+							buffer.append(template.getName());
+						}
+						buffer.append("\",");
+
+						buffer.append("\"value\":");
+						if (template.getId() == null) {
+							buffer.append(0);
+						} else {
+							buffer.append(template.getId());
+						}
+
+						buffer.append('}');
+
+						if (isFirst)
+							isFirst = false;
 					}
-					buffer.append("\",");
-
-					buffer.append("\"value\":");
-					if (template.getId() == null) {
-						buffer.append(0);
-					} else {
-						buffer.append(template.getId());
-					}
-
-					buffer.append('}');
-					
-					if (isFirst)
-						isFirst = false;
+					buffer.append(']');
+					response.setContentType("application/xml");
+					response.getWriter().write(buffer.toString());
+					response.setStatus(200);
 				}
-				buffer.append(']');
-				response.setContentType("application/xml");
-				response.getWriter().write(buffer.toString());
-				response.setStatus(200);
+			} else {
+				response.setStatus(400);
+				response.getWriter().println("Invalid parameters");
 			}
-		} else {
+		} catch (Exception e) {
 			response.setStatus(400);
-			response.getWriter().println("Invalid parameters");
+			response.getWriter().println(e.toString());
 		}
 	}
 
