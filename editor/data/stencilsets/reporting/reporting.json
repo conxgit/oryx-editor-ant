@@ -54,15 +54,15 @@
 		        "roles": ["output"],
 				"properties": [
 					{
-						"id": "dataSource",
+						"id": "template",
 						"type": "Choice",
-						"restUrl": "/backend/poem/endpoint",
+						"restUrl": "/backend/poem/reporting",
 						"restMethod": "GET",
 						"restParams": {
 							"userId": "skeswa",
-							"call": "getEndpointsByTenant"
+							"call": "getReportTemplatesByTenant"
 						},
-						"title": "Data Source",
+						"title": "Report Template",
 											"description": "Configuration for this data source.",
 											"readonly":false,
 											"optional":false,

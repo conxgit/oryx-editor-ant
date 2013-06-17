@@ -1,9 +1,11 @@
 package org.b3mn.poem.handler;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,28 +20,39 @@ import com.conx.bi.app.reporting.dao.services.IReportingDAOServicePortType;
 @HandlerWithoutModelContext(uri = "/endpoint")
 public class EndpointHandler extends HandlerBase {
 	private static final boolean isTesting = false;
+	Properties props = null;
+	final static String configPreFix = "profile.stencilset.mapping.";
+	final static String defaultSS = "/stencilsets/bpmn/bpmn.json";
 
 	private IReportingDAOServicePortType reportingDAOService;
-	
-	public EndpointHandler() {
-//		JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
-//		factory.getInInterceptors().add(new LoggingInInterceptor());
-//		factory.getOutInterceptors().add(new LoggingOutInterceptor());
-//		factory.setServiceClass(IReportingDAOService.class);
-//		factory.setAddress("http://71.162.140.197:8181/cxf/com/conx/bi/app/reporting/dao/services/IReportingDAOService?wsdl");
-		try {
-//			this.reportingDAOService = ((IReportingDAOService) factory.create()).getIReportingDAOServicePort();
-			IReportingDAOService service = new IReportingDAOService(new URL("http://71.162.140.197:8181/cxf/com/conx/bi/app/reporting/dao/services/IReportingDAOService?wsdl"));
-			this.reportingDAOService = service.getIReportingDAOServicePort();
-		} catch (Exception e) {
-			e.printStackTrace();
-		} catch (Error e) {
-			e.printStackTrace();
-		}
-	}
 
 	@Override
 	public void init() {
+		// Load properties
+		FileInputStream in;
+
+		// initialize properties from backend.properties
+		try {
+			in = new FileInputStream(this.getBackendRootDirectory() + "/WEB-INF/backend.properties");
+			props = new Properties();
+			props.load(in);
+			in.close();
+
+			String url = props.getProperty("conxbi.soap.hostname");
+			String port = props.getProperty("conxbi.soap.port");
+			if (url == null)
+				url = "localhost";
+			if (port == null)
+				url = "8080";
+
+			IReportingDAOService service = new IReportingDAOService(new URL("http://" + url + ":" + port
+					+ "/cxf/com/conx/bi/app/reporting/dao/services/IReportingDAOService?wsdl"));
+			this.reportingDAOService = service.getIReportingDAOServicePort();
+		} catch (Exception e) {
+			props = new Properties();
+		} catch (Error e) {
+			e.printStackTrace();
+		}
 	}
 
 	private List<Endpoint> getEndpoints() {
@@ -80,7 +93,7 @@ public class EndpointHandler extends HandlerBase {
 					for (Endpoint endpoint : endpoints) {
 						if (!isFirst)
 							buffer.append(',');
-						
+
 						buffer.append('{');
 
 						buffer.append("\"title\":\"");
@@ -91,13 +104,13 @@ public class EndpointHandler extends HandlerBase {
 						}
 						buffer.append("\",");
 
-						buffer.append("\"value\":\"");
-						if (endpoint.getCode() == null) {
-							buffer.append(0);
+						buffer.append("\"value\":");
+						if (endpoint.getId() == null) {
+							buffer.append("-1");
 						} else {
-							buffer.append(endpoint.getCode());
+							buffer.append(endpoint.getId());
 						}
-						buffer.append("\",");
+						buffer.append(",");
 
 						buffer.append("\"id\":");
 						if (endpoint.getId() == null) {

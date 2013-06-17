@@ -3,7 +3,6 @@ package org.b3mn.poem.handler;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -15,11 +14,10 @@ import org.b3mn.poem.util.HandlerWithoutModelContext;
 
 import com.conx.bi.app.reporting.dao.services.IReportingDAOService;
 import com.conx.bi.app.reporting.dao.services.IReportingDAOServicePortType;
-import com.conx.bi.app.reporting.dao.services.ReportTemplate;
+import com.conx.bi.app.reporting.dao.services.ReportingJobDefinition;
 
-@HandlerWithoutModelContext(uri = "/reporting")
-public class ReportingHandler extends HandlerBase {
-	private static final boolean isTesting = false;
+@HandlerWithoutModelContext(uri = "/jobdefinition")
+public class JobDefinitionHandler extends HandlerBase {
 	Properties props = null;
 	final static String configPreFix = "profile.stencilset.mapping.";
 	final static String defaultSS = "/stencilsets/bpmn/bpmn.json";
@@ -55,25 +53,8 @@ public class ReportingHandler extends HandlerBase {
 		}
 	}
 
-	private List<ReportTemplate> getReportingTemplates() {
-		if (!isTesting) {
-			return this.reportingDAOService.getAllReportTemplates();
-		} else {
-			List<ReportTemplate> list = new ArrayList<ReportTemplate>();
-			ReportTemplate temp = new ReportTemplate();
-			temp.setId(1001L);
-			temp.setName("Default Template");
-			list.add(temp);
-			temp = new ReportTemplate();
-			temp.setId(1002L);
-			temp.setName("Basic Template");
-			list.add(temp);
-			temp = new ReportTemplate();
-			temp.setId(1003L);
-			temp.setName("Advanced Template");
-			list.add(temp);
-			return list;
-		}
+	private List<ReportingJobDefinition> getJobDefinitions() {
+		return this.reportingDAOService.getAllJobDefinitions();
 	}
 
 	@Override
@@ -82,38 +63,38 @@ public class ReportingHandler extends HandlerBase {
 			if ((request.getParameter("userId") != null) && (request.getParameter("call") != null)) {
 				// String userId = request.getParameter("userId");
 				String call = request.getParameter("call");
-				if ("getReportTemplatesByTenant".equals(call)) {
+				if ("getAllJobDefinitions".equals(call)) {
 					StringBuffer buffer = new StringBuffer();
 					buffer.append('[');
-					List<ReportTemplate> templates = getReportingTemplates();
+					List<ReportingJobDefinition> jobDefs = getJobDefinitions();
 					boolean isFirst = true;
-					for (ReportTemplate template : templates) {
+					for (ReportingJobDefinition jobDef : jobDefs) {
 						if (!isFirst)
 							buffer.append(',');
 
 						buffer.append('{');
 
 						buffer.append("\"title\":\"");
-						if (template.getName() == null) {
-							buffer.append("<undefined>");
+						if (jobDef.getName() == null) {
+							buffer.append("New Process");
 						} else {
-							buffer.append(template.getName());
+							buffer.append(jobDef.getName());
 						}
 						buffer.append("\",");
 
-						buffer.append("\"value\":");
-						if (template.getId() == null) {
-							buffer.append("-1");
-						} else {
-							buffer.append(template.getId());
-						}
-						buffer.append(",");
-
-						buffer.append("\"id\":");
-						if (template.getId() == null) {
+						buffer.append("\"value\":\"");
+						if (jobDef.getExternalRefId() == null) {
 							buffer.append(0);
 						} else {
-							buffer.append(template.getId());
+							buffer.append(jobDef.getExternalRefId());
+						}
+						buffer.append("\",");
+
+						buffer.append("\"id\":");
+						if (jobDef.getId() == null) {
+							buffer.append(0);
+						} else {
+							buffer.append(jobDef.getId());
 						}
 
 						buffer.append('}');

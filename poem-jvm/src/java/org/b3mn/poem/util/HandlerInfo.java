@@ -19,7 +19,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
-****************************************/
+ ****************************************/
 
 package org.b3mn.poem.util;
 
@@ -44,10 +44,10 @@ public class HandlerInfo {
 	protected ExportInfo exportInfo;
 
 	protected Map<String, AccessRight> accessRights = new HashMap<String, AccessRight>();
-	
+
 	private static Map<String, Method> filterMapping = new HashMap<String, Method>();
 	private static Map<String, Method> sortMapping = new HashMap<String, Method>();
-	
+
 	protected Class<? extends HandlerBase> handlerClass = null;
 	protected HandlerBase handlerInstance = null;
 
@@ -62,7 +62,7 @@ public class HandlerInfo {
 	public ExportInfo getExportInfo() {
 		return exportInfo;
 	}
-	
+
 	public String getUri() {
 		return uri;
 	}
@@ -82,26 +82,26 @@ public class HandlerInfo {
 	public HandlerBase getHandlerInstance() {
 		return handlerInstance;
 	}
-	
+
 	public void setHandlerInstance(HandlerBase handler) {
 		this.handlerInstance = handler;
 	}
-	
+
 	public Class<? extends HandlerBase> getHandlerClass() {
 		return handlerClass;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public HandlerInfo(String className) throws ClassNotFoundException {
 		Class<? extends HandlerBase> handlerClass = (Class<? extends HandlerBase>) Class.forName(className);
 		init(handlerClass);
 	}
-	
+
 	public HandlerInfo(Class<? extends HandlerBase> handlerClass) {
 		init(handlerClass);
 	}
-	
-	private void init(Class<? extends HandlerBase> handlerClass)  {
+
+	private void init(Class<? extends HandlerBase> handlerClass) {
 		if (handlerClass.getAnnotation(HandlerWithoutModelContext.class) != null) {
 			HandlerWithoutModelContext annotation = handlerClass.getAnnotation(HandlerWithoutModelContext.class);
 			this.uri = annotation.uri();
@@ -118,24 +118,25 @@ public class HandlerInfo {
 			this.filterBrowser = annotation.filterBrowser();
 			this.handlerClass = handlerClass;
 			this.accessRights.put(null, annotation.accessRestriction());
-			
-			// Assign individual operation access restriction from method annotations
+
+			// Assign individual operation access restriction from method
+			// annotations
 			for (Method method : handlerClass.getMethods()) {
-				// If the method is one of the 4 REST methods an takes 4 parameters
-				if ((method.getName().equals("doGet") || method.getName().equals("doPut") || 
-						method.getName().equals("doPost") || method.getName().equals("doDelete")) && 
-						(method.getParameterTypes().length == 4)) {
-					
+				// If the method is one of the 4 REST methods an takes 4
+				// parameters
+				if ((method.getName().equals("doGet") || method.getName().equals("doPut") || method.getName().equals("doPost") || method.getName().equals("doDelete"))
+						&& (method.getParameterTypes().length == 4)) {
+
 					Class<?>[] parameters = method.getParameterTypes();
 					// Validate parameter types
-					if (parameters[0].equals(HttpServletRequest.class) && parameters[1].equals(HttpServletResponse.class) && 
-							parameters[2].equals(Identity.class) && parameters[3].equals(Identity.class)) {
-						
+					if (parameters[0].equals(HttpServletRequest.class) && parameters[1].equals(HttpServletResponse.class) && parameters[2].equals(Identity.class)
+							&& parameters[3].equals(Identity.class)) {
+
 						String operation = method.getName().substring(2).toLowerCase();
 						if (method.getAnnotation(RestrictAccess.class) != null) {
 							this.accessRights.put(operation, method.getAnnotation(RestrictAccess.class).value());
 						}
-					}				
+					}
 				}
 			}
 		}
@@ -150,71 +151,90 @@ public class HandlerInfo {
 			this.exportInfo = new ExportInfo(annotation);
 
 		}
-		
+
 		try {
 			loadSortAndFilterMethods();
-		} catch (Exception e) {} // igonore exceptions
+		} catch (Exception e) {
+		} // igonore exceptions
 	}
-	
+
 	private static boolean isSuperclass(Class<?> subClass, Class<?> parentClass) {
-		if (subClass.equals(parentClass)) return true;
-		if (subClass.getSuperclass() == null) return false;
+		if (subClass.equals(parentClass))
+			return true;
+		if (subClass.getSuperclass() == null)
+			return false;
 		return isSuperclass(subClass.getSuperclass(), parentClass);
 	}
-	
-	// Search all handlers for static methods that are annotated with FilterMethod or SortMethod  
-	private void loadSortAndFilterMethods() throws Exception{
-		for (String handlerName : HandlerBase.getDispatcher().getHandlerClassNames()) {
-			Class<?> handlerClass = Class.forName(handlerName);
-			// Iterate over all public methods of the class
-			for (Method method : handlerClass.getMethods()) {  
-				// Find filtering methods ************************************************************
-				// Check if the method is static, annotated with the FilterMethod annotation,
-				// returns a collection and has the right parameters
-				if ((method.getAnnotation(FilterMethod.class) != null) && 
-						(isSuperclass(method.getReturnType(),Collection.class)) && 
-						(method.getParameterTypes().length == 2) &&
-						((method.getModifiers() & Modifier.STATIC) != 0)) {
-					// Check: 1st parameter: Identity, 2nd String
-					if ((method.getParameterTypes()[0].equals(Identity.class)) && 
-							(method.getGenericParameterTypes()[1].equals(String.class))) {
-						// If no filter name is supplied by the annotation, use the method name
-						// Note: filter names are case-insensitive
-						String filterName = method.getName().toLowerCase();
-						
-						if (!method.getAnnotation(FilterMethod.class).FilterName().equals("")) {
-							filterName = method.getAnnotation(FilterMethod.class).FilterName().toLowerCase();
-						}
-						HandlerInfo.filterMapping.put(filterName, method);
-					}
-				}
-				// Find sorting methods ************************************************************
-				// Check if the method is static, annotated with the SortMethod annotation,
-				// returns a list and has the right parameters  
-				if ((method.getAnnotation(SortMethod.class) != null) && 
-						(isSuperclass(method.getReturnType(),List.class)) && 
-						(method.getParameterTypes().length == 1) &&
-						((method.getModifiers() & Modifier.STATIC) != 0)) {
-					// Check: 1st and only parameter: Identity
-					if (method.getParameterTypes()[0].equals(Identity.class)) {			
-						// If no filter name is supplied by the annotation, use the method name
-						// Note: filter names are case-insensitive
-						String sortName = method.getName().toLowerCase();
 
-						if (!method.getAnnotation(SortMethod.class).SortName().equals("")) {
-							sortName = method.getAnnotation(SortMethod.class).SortName().toLowerCase();
+	// Search all handlers for static methods that are annotated with
+	// FilterMethod or SortMethod
+	private void loadSortAndFilterMethods() throws Exception {
+		try {
+			for (String handlerName : HandlerBase.getDispatcher().getHandlerClassNames()) {
+				try {
+					Class<?> handlerClass = Class.forName(handlerName);
+					// Iterate over all public methods of the class
+					for (Method method : handlerClass.getMethods()) {
+						try {
+							// Find filtering methods
+							// ************************************************************
+							// Check if the method is static, annotated with the
+							// FilterMethod annotation,
+							// returns a collection and has the right parameters
+							if ((method.getAnnotation(FilterMethod.class) != null) && (isSuperclass(method.getReturnType(), Collection.class))
+									&& (method.getParameterTypes().length == 2) && ((method.getModifiers() & Modifier.STATIC) != 0)) {
+								// Check: 1st parameter: Identity, 2nd String
+								if ((method.getParameterTypes()[0].equals(Identity.class)) && (method.getGenericParameterTypes()[1].equals(String.class))) {
+									// If no filter name is supplied by the
+									// annotation, use the method name
+									// Note: filter names are case-insensitive
+									String filterName = method.getName().toLowerCase();
+
+									if (!method.getAnnotation(FilterMethod.class).FilterName().equals("")) {
+										filterName = method.getAnnotation(FilterMethod.class).FilterName().toLowerCase();
+									}
+									HandlerInfo.filterMapping.put(filterName, method);
+								}
+							}
+							// Find sorting methods
+							// ************************************************************
+							// Check if the method is static, annotated with the
+							// SortMethod annotation,
+							// returns a list and has the right parameters
+							if ((method.getAnnotation(SortMethod.class) != null) && (isSuperclass(method.getReturnType(), List.class))
+									&& (method.getParameterTypes().length == 1) && ((method.getModifiers() & Modifier.STATIC) != 0)) {
+								// Check: 1st and only parameter: Identity
+								if (method.getParameterTypes()[0].equals(Identity.class)) {
+									// If no filter name is supplied by the
+									// annotation, use the method name
+									// Note: filter names are case-insensitive
+									String sortName = method.getName().toLowerCase();
+
+									if (!method.getAnnotation(SortMethod.class).SortName().equals("")) {
+										sortName = method.getAnnotation(SortMethod.class).SortName().toLowerCase();
+									}
+									HandlerInfo.sortMapping.put(sortName, method);
+								}
+							}
+						} catch (NoClassDefFoundError e) {
+							e.printStackTrace();
 						}
-						HandlerInfo.sortMapping.put(sortName, method);
 					}
-				}											
+				} catch (NoClassDefFoundError e) {
+					e.printStackTrace();
+				}
 			}
+		} catch (NoClassDefFoundError e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
 		}
 	}
 
 	public AccessRight getAccessRestriction(String operation) {
 		operation = operation.toLowerCase();
 		AccessRight right = this.accessRights.get(operation);
-		// if a specific access right for a method doesn't exist, 
+		// if a specific access right for a method doesn't exist,
 		// try to get the access right from the class scope
 		if ((right == null) && operation != null) {
 			right = this.accessRights.get(null);

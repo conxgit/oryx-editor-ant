@@ -138,6 +138,8 @@ ORYX.Core.StencilSet.Property = Clazz.extend({
         if (jsonProp.type === ORYX.CONFIG.TYPE_CHOICE) {
         	if (jsonProp.restUrl && jsonProp.restMethod && jsonProp.restParams) {
         		var propertyRef = this;
+        		// Use the global userId if its defined
+        		if (ORYX.CONFIG.USER_ID) jsonProp.restParams["userId"] = ORYX.CONFIG.USER_ID;
         		// Use REST to fetch choice items
         		new Ajax.Request(jsonProp.restUrl, {
         			method : jsonProp.restMethod,

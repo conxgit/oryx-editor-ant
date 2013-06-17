@@ -19,12 +19,14 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
-****************************************/
+ ****************************************/
 
 package org.b3mn.poem.handler;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
+import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,116 +37,139 @@ import javax.servlet.http.HttpServletResponse;
 import org.b3mn.poem.Identity;
 import org.b3mn.poem.util.HandlerWithoutModelContext;
 
-@HandlerWithoutModelContext(uri="/new")
+import com.conx.bi.app.reporting.dao.services.IReportingDAOService;
+import com.conx.bi.app.reporting.dao.services.IReportingDAOServicePortType;
+import com.jayway.jsonpath.JsonPath;
+
+@HandlerWithoutModelContext(uri = "/new")
 public class NewModelHandler extends HandlerBase {
-	Properties props=null;
-	final static String configPreFix="profile.stencilset.mapping.";
-	final static String defaultSS= "/stencilsets/bpmn/bpmn.json";
-	
-//	private IReportingDAOServicePortType reportingDAOService;
-	
+	Properties props = null;
+	final static String configPreFix = "profile.stencilset.mapping.";
+	final static String defaultSS = "/stencilsets/bpmn/bpmn.json";
+
+	private IReportingDAOServicePortType reportingDAOService;
+
 	@Override
 	public void init() {
-		//Load properties
+		// Load properties
 		FileInputStream in;
-		
-		//initialize properties from backend.properties
+
+		// initialize properties from backend.properties
 		try {
-//			JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
-//			factory.getInInterceptors().add(new LoggingInInterceptor());
-//			factory.getOutInterceptors().add(new LoggingOutInterceptor());
-//			factory.setServiceClass(IReportingDAOService.class);
-//			factory.setAddress("http://71.162.140.200:8181/cxf/com/conx/bi/app/reporting/dao/services/IReportingDAOService");
-//			this.reportingDAOService = ((IReportingDAOService) factory.create()).getIReportingDAOServicePort();
-			
 			in = new FileInputStream(this.getBackendRootDirectory() + "/WEB-INF/backend.properties");
 			props = new Properties();
 			props.load(in);
 			in.close();
-		}catch (Exception e) {
+
+			String url = props.getProperty("conxbi.soap.hostname");
+			String port = props.getProperty("conxbi.soap.port");
+			if (url == null)
+				url = "localhost";
+			if (port == null)
+				url = "8080";
+
+			IReportingDAOService service = new IReportingDAOService(new URL("http://" + url + ":" + port
+					+ "/cxf/com/conx/bi/app/reporting/dao/services/IReportingDAOService?wsdl"));
+			this.reportingDAOService = service.getIReportingDAOServicePort();
+		} catch (Exception e) {
 			props = new Properties();
+		} catch (Error e) {
+			e.printStackTrace();
 		}
 	}
+
 	@Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response, Identity subject, Identity object) throws IOException {
-		String pName=request.getParameter("profile");
-	    String queryString = request.getQueryString();   // d=789
-	    if (queryString != null) {
-			queryString="?"+queryString;
+	public void doGet(HttpServletRequest request, HttpServletResponse response, Identity subject, Identity object) throws IOException {
+		String pName = request.getParameter("profile");
+		String queryString = request.getQueryString(); // d=789
+		if (queryString != null) {
+			queryString = "?" + queryString;
 
-	        }
-	    else{
-			queryString="";
+		} else {
+			queryString = "";
 
-	    }
-		if(pName!=null){
-			response.sendRedirect("/oryx/editor;"+pName+queryString);
+		}
+		if (pName != null) {
+			response.sendRedirect("/oryx/editor;" + pName + queryString);
 			return;
 		}
-		
+
 		redirectToDefaultProfileForStencilSet(request, response, queryString);
 
-		
 	}
 
-	/**Redirects to the default Profile for the given StencilSet (definition in property file)
-	 * If not stencilset given, use the defaultSS of the handler
+	/**
+	 * Redirects to the default Profile for the given StencilSet (definition in
+	 * property file) If not stencilset given, use the defaultSS of the handler
+	 * 
 	 * @param request
 	 * @param response
 	 * @param queryString
 	 * @throws IOException
 	 */
-	private void redirectToDefaultProfileForStencilSet(
-			HttpServletRequest request, HttpServletResponse response,
-			String queryString) throws IOException {
-		String profileName=null;
-		String stencilset =defaultSS;
+	private void redirectToDefaultProfileForStencilSet(HttpServletRequest request, HttpServletResponse response, String queryString) throws IOException {
+		String profileName = null;
+		String stencilset = defaultSS;
 		if (request.getParameter("stencilset") != null) {
 			stencilset = request.getParameter("stencilset");
 		}
 		try {
 			Pattern p = Pattern.compile("/([^/]+).json");
 			Matcher matcher = p.matcher(stencilset);
-			if(matcher.find()){
-				profileName=props.getProperty("org.b3mn.poem.handler.ModelHandler.profileFor."+matcher.group(1));
+			if (matcher.find()) {
+				profileName = props.getProperty("org.b3mn.poem.handler.ModelHandler.profileFor." + matcher.group(1));
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 		}
-		if(profileName==null)
-			profileName="default";
-		
-		response.sendRedirect("/oryx/editor;"+profileName+queryString);
+		if (profileName == null)
+			profileName = "default";
+
+		response.sendRedirect("/oryx/editor;" + profileName + queryString);
 	}
-	
+
 	@Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response, Identity subject, Identity object) throws IOException {
-		// Check whether the user is public
-		if (subject.getUri().equals(getPublicUser())) {
-			response.getWriter().println("The public user is not allowed to create new models. Please login first.");
-			response.setStatus(403);
-			return;
-		}
-		// Check whether the request contains at least the data and svg parameters
+	public void doPost(HttpServletRequest request, HttpServletResponse response, Identity subject, Identity object) throws IOException {
+		// Check whether the request contains at least the data and svg
+		// parameters
 		if ((request.getParameter("data") != null) && (request.getParameter("svg") != null)) {
 			response.setStatus(201);
 			String title = request.getParameter("title");
-			if (title == null) title = "New Process";
+			if (title == null)
+				title = "New Job Definition";
 			String type = request.getParameter("type");
-			if (type == null) type = "/stencilsets/bpmn/bpmn.json";
+			if (type == null)
+				type = "/stencilsets/bpmn/bpmn.json";
 			String summary = request.getParameter("summary");
-			if (summary == null) summary = "This is a new process.";
-			
-			Identity identity = Identity.newModel(subject, title, type, summary, 
-					request.getParameter("svg"), request.getParameter("data"));
+			if (summary == null)
+				summary = "This is a new process.";
+			String data = request.getParameter("data");
+
+			Identity identity = Identity.newModel(subject, title, type, summary, request.getParameter("svg"), data);
 			response.setHeader("location", this.getServerPath(request) + identity.getUri() + "/self");
 			// ConX BI Call
-//			this.reportingDAOService.getJobDefinition(identity.getId());
-		}
-		else {
+			String userId = request.getParameter("userId") != null ? request.getParameter("userId") : "test";
+			Boolean isTemplate = request.getParameter("template") != null ? "true".equals(request.getParameter("template")) : false;
+			List<Object> shapes = JsonPath.read(data, "$.childShapes");
+			Integer dsId = null, rtId = null;
+			for (Object shape : shapes) {
+				String res = JsonPath.read(shape, "$.stencil.id");
+				if (res != null) {
+					if (res.equals("node-datasource")) {
+						dsId = JsonPath.read(shape, "$.properties.datasource");
+					} else if (res.equals("node-report")) {
+						rtId = JsonPath.read(shape, "$.properties.template");
+					}
+				}
+			}
+			response.getWriter().println(dsId + "|" + rtId);
+			if (dsId != null && rtId != null) {
+				this.reportingDAOService.addJobDefinition1(userId, identity.getUri(), title, new Long(dsId), new Long(rtId), isTemplate);
+			}
+		} else {
 			response.setStatus(400);
 			response.getWriter().println("Data and/or SVG missing");
 		}
-			
+
 	}
 }
