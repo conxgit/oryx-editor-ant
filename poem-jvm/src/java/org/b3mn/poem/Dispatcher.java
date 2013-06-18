@@ -232,7 +232,7 @@ public class Dispatcher extends HttpServlet {
 				return handler;
 			}
 		} catch (Exception e) {
-			return null;
+			throw new RuntimeException(e);
 		}
 	}
 
