@@ -44,18 +44,19 @@ ORYX.Plugins.JSONSupport = ORYX.Plugins.AbstractPlugin.extend({
             'minShape': 0,
             'maxShape': 0
         });
-        
-        this.facade.offer({
-            'name': ORYX.I18N.JSONSupport.imp.name,
-            'functionality': this.showImportDialog.bind(this),
-            'group': ORYX.I18N.JSONSupport.imp.group,
-            dropDownGroupIcon: ORYX.PATH + "images/import.png",
-			'icon': ORYX.PATH + "images/page_white_javascript.png",
-            'description': ORYX.I18N.JSONSupport.imp.desc,
-            'index': 1,
-            'minShape': 0,
-            'maxShape': 0
-        });
+        if (!(ORYX.CONFIG.IS_TEMPLATE)) {
+	        this.facade.offer({
+	            'name': ORYX.I18N.JSONSupport.imp.name,
+	            'functionality': this.showImportDialog.bind(this),
+	            'group': ORYX.I18N.JSONSupport.imp.group,
+	            dropDownGroupIcon: ORYX.PATH + "images/import.png",
+				'icon': ORYX.PATH + "images/page_white_javascript.png",
+	            'description': ORYX.I18N.JSONSupport.imp.desc,
+	            'index': 1,
+	            'minShape': 0,
+	            'maxShape': 0
+	        });
+        }
     },
     
     exportJSON: function(){

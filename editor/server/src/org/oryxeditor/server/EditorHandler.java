@@ -98,7 +98,7 @@ public class EditorHandler extends HttpServlet {
 	        "ORYX.CONFIG.SSET='" + sset +"';" +
 	        "ORYX.CONFIG.SSEXTS=" + extString + ";"+
 	        ((isTemplate) ? "ORYX.CONFIG[\"IS_TEMPLATE\"] = true;" : "ORYX.CONFIG[\"IS_TEMPLATE\"] = false;") +
-	        ((userId != null) ? "ORYX.CONFIG[\"USER_ID\"] = \"" + userId + "\";" : "") +
+	        ((userId != null) ? "ORYX.CONFIG[\"USER_ID\"] = \"" + userId + "\";" : "ORYX.CONFIG[\"USER_ID\"] = \"test\";") +
 	        "if ('undefined' == typeof(window.onOryxResourcesLoaded)) { " +
 	        	"ORYX.Log.warn('No adapter to repository specified, default used. You need a function window.onOryxResourcesLoaded that obtains model-JSON from your repository');" +
 	        	"window.onOryxResourcesLoaded = function() {" +

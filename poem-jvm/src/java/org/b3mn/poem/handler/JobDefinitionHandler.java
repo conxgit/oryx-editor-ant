@@ -69,38 +69,40 @@ public class JobDefinitionHandler extends HandlerBase {
 					List<ReportingJobDefinition> jobDefs = getJobDefinitions();
 					boolean isFirst = true;
 					for (ReportingJobDefinition jobDef : jobDefs) {
-						if (!isFirst)
-							buffer.append(',');
+						if (jobDef.isTemplate()) {
+							if (!isFirst)
+								buffer.append(',');
 
-						buffer.append('{');
+							buffer.append('{');
 
-						buffer.append("\"title\":\"");
-						if (jobDef.getName() == null) {
-							buffer.append("New Process");
-						} else {
-							buffer.append(jobDef.getName());
+							buffer.append("\"title\":\"");
+							if (jobDef.getName() == null) {
+								buffer.append("New Process");
+							} else {
+								buffer.append(jobDef.getName());
+							}
+							buffer.append("\",");
+
+							buffer.append("\"value\":\"");
+							if (jobDef.getExternalRefId() == null) {
+								buffer.append(0);
+							} else {
+								buffer.append(jobDef.getExternalRefId());
+							}
+							buffer.append("\",");
+
+							buffer.append("\"id\":");
+							if (jobDef.getId() == null) {
+								buffer.append(0);
+							} else {
+								buffer.append(jobDef.getId());
+							}
+
+							buffer.append('}');
+
+							if (isFirst)
+								isFirst = false;
 						}
-						buffer.append("\",");
-
-						buffer.append("\"value\":\"");
-						if (jobDef.getExternalRefId() == null) {
-							buffer.append(0);
-						} else {
-							buffer.append(jobDef.getExternalRefId());
-						}
-						buffer.append("\",");
-
-						buffer.append("\"id\":");
-						if (jobDef.getId() == null) {
-							buffer.append(0);
-						} else {
-							buffer.append(jobDef.getId());
-						}
-
-						buffer.append('}');
-
-						if (isFirst)
-							isFirst = false;
 					}
 					buffer.append(']');
 					response.setContentType("application/xml");
