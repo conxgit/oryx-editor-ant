@@ -152,8 +152,13 @@ ORYX.Core.StencilSet.Property = Clazz.extend({
 	        				}
         				}
         			},
-        			onFailure : function() {
-        				if (console) console.log("ERR: Could not fetch Choice Items from REST")
+        			onFailure : function(err) {
+        				var errMsg = "FATAL: REST query to " + jsonProp.restUrl + " failed.";
+        				if (console) {
+        					console.log(errMsg);
+        					console.log(err);
+        				}
+        				alert(errMsg);
         			}
         		});
         	}

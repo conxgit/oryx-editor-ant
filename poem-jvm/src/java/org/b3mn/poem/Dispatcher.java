@@ -24,8 +24,6 @@
 package org.b3mn.poem;
 
 import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -439,27 +437,9 @@ public class Dispatcher extends HttpServlet {
 			// response.reset(); // Undo all changes --> this may cause some
 			// trouble because of a SUN bug
 			e.printStackTrace();
-
-			StringWriter sw = new StringWriter();
-			e.printStackTrace(new PrintWriter(sw));
-			System.out.println(sw.toString());
-			/*
-			 * try {
-			 * response.sendRedirect("http://bpt.hpi.uni-potsdam.de/Oryx/503");
-			 * } catch (IOException e1) { e1.printStackTrace(); }
-			 */
 			throw new ServletException(e);
 		} catch (Error e) {
 			e.printStackTrace();
-
-			StringWriter sw = new StringWriter();
-			e.printStackTrace(new PrintWriter(sw));
-			System.out.println(sw.toString());
-			/*
-			 * try {
-			 * response.sendRedirect("http://bpt.hpi.uni-potsdam.de/Oryx/503");
-			 * } catch (IOException e1) { e1.printStackTrace(); }
-			 */
 			throw new ServletException(e);
 		} finally {
 			// This might be a hibernate design crime but should fix some

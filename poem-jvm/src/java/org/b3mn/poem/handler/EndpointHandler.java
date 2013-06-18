@@ -2,6 +2,8 @@ package org.b3mn.poem.handler;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,9 +51,11 @@ public class EndpointHandler extends HandlerBase {
 					+ "/cxf/com/conx/bi/app/reporting/dao/services/IReportingDAOService?wsdl"));
 			this.reportingDAOService = service.getIReportingDAOServicePort();
 		} catch (Exception e) {
-			props = new Properties();
+			e.printStackTrace();
+			throw new RuntimeException(e);
 		} catch (Error e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -135,7 +139,9 @@ public class EndpointHandler extends HandlerBase {
 			}
 		} catch (Exception e) {
 			response.setStatus(400);
-			response.getWriter().println(e.toString());
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+			response.getWriter().println(sw.toString());
 		}
 	}
 
