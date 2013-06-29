@@ -59,9 +59,9 @@ public class ReportingHandler extends HandlerBase {
 		}
 	}
 
-	private List<ReportTemplate> getReportingTemplates() {
+	private List<ReportTemplate> getReportingTemplates(String userId) {
 		if (!isTesting) {
-			return this.reportingDAOService.getAllReportTemplates();
+			return this.reportingDAOService.getReportTemplatesByTenantUserName(userId);
 		} else {
 			List<ReportTemplate> list = new ArrayList<ReportTemplate>();
 			ReportTemplate temp = new ReportTemplate();
@@ -84,12 +84,12 @@ public class ReportingHandler extends HandlerBase {
 	public void doGet(HttpServletRequest request, HttpServletResponse response, Identity subject, Identity object) throws IOException {
 		try {
 			if ((request.getParameter("userId") != null) && (request.getParameter("call") != null)) {
-				// String userId = request.getParameter("userId");
+				String userId = request.getParameter("userId");
 				String call = request.getParameter("call");
 				if ("getReportTemplatesByTenant".equals(call)) {
 					StringBuffer buffer = new StringBuffer();
 					buffer.append('[');
-					List<ReportTemplate> templates = getReportingTemplates();
+					List<ReportTemplate> templates = getReportingTemplates(userId);
 					boolean isFirst = true;
 					for (ReportTemplate template : templates) {
 						if (!isFirst)

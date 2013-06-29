@@ -59,9 +59,9 @@ public class EndpointHandler extends HandlerBase {
 		}
 	}
 
-	private List<Endpoint> getEndpoints() {
+	private List<Endpoint> getEndpoints(String userId) {
 		if (!isTesting) {
-			return this.reportingDAOService.getAllEndpoints();
+			return this.reportingDAOService.getEndpointsByTenantUserName(userId);
 		} else {
 			List<Endpoint> list = new ArrayList<Endpoint>();
 			Endpoint temp = new Endpoint();
@@ -87,12 +87,12 @@ public class EndpointHandler extends HandlerBase {
 	public void doGet(HttpServletRequest request, HttpServletResponse response, Identity subject, Identity object) throws IOException {
 		try {
 			if ((request.getParameter("userId") != null) && (request.getParameter("call") != null)) {
-				// String userId = request.getParameter("userId");
+				String userId = request.getParameter("userId");
 				String call = request.getParameter("call");
 				if ("getEndpointsByTenant".equals(call)) {
 					StringBuffer buffer = new StringBuffer();
 					buffer.append('[');
-					List<Endpoint> endpoints = getEndpoints();
+					List<Endpoint> endpoints = getEndpoints(userId);
 					boolean isFirst = true;
 					for (Endpoint endpoint : endpoints) {
 						if (!isFirst)

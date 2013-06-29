@@ -57,7 +57,7 @@ public class JobDefinitionHandler extends HandlerBase {
 		}
 	}
 
-	private List<ReportingJobDefinition> getJobDefinitions() {
+	private List<ReportingJobDefinition> getJobDefinitions(String userId) {
 		return this.reportingDAOService.getAllJobDefinitions();
 	}
 
@@ -65,12 +65,12 @@ public class JobDefinitionHandler extends HandlerBase {
 	public void doGet(HttpServletRequest request, HttpServletResponse response, Identity subject, Identity object) throws IOException {
 		try {
 			if ((request.getParameter("userId") != null) && (request.getParameter("call") != null)) {
-				// String userId = request.getParameter("userId");
+				String userId = request.getParameter("userId");
 				String call = request.getParameter("call");
 				if ("getAllJobDefinitions".equals(call)) {
 					StringBuffer buffer = new StringBuffer();
 					buffer.append('[');
-					List<ReportingJobDefinition> jobDefs = getJobDefinitions();
+					List<ReportingJobDefinition> jobDefs = getJobDefinitions(userId);
 					boolean isFirst = true;
 					for (ReportingJobDefinition jobDef : jobDefs) {
 						if (jobDef.isTemplate()) {
